@@ -67,3 +67,38 @@ def update_chart(n):
 # Lancer l'application Flask
 if __name__ == '__main__':
     app.run_server(debug=True)
+import requests
+from bs4 import BeautifulSoup
+
+def get_pmu_odds():
+    url = "https://www.pmu.fr/turf/"  # Site des courses en direct
+    headers = {"User-Agent": "Mozilla/5.0"}
+    
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, 'lxml')
+
+        horses = []
+        odds = []
+
+        # Sélection des noms de chevaux
+        for horse in soup.select('.horse-name'):
+            horses.append(horse.text.strip())
+
+        # Sélection des cotes associées
+        for odd in soup.select('.odds-value'):
+            odds.append(odd.text.strip())
+
+        if len(horses) == len(odds) and len(horses) > 0:
+            return pd.DataFrame({"Horse": horses, "Odds": odds})
+        else:
+            return pd.DataFrame()
+    else:
+        return pd.DataFrame()
+
+# Mise à jour de la fonction de récupération des données
+def get_race_data():
+    data = get_pmu_odds()
+    if data.empty:
+        return generate_fake_data()  # Si scraping échoue, utiliser des données fictives
+    return data
