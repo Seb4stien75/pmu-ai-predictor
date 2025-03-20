@@ -7,6 +7,7 @@ import plotly.express as px
 import requests
 from bs4 import BeautifulSoup
 from dash.dependencies import Input, Output
+import time
 
 # Initialisation de l'application Flask
 server = Flask(__name__)
@@ -17,8 +18,14 @@ app = dash.Dash(__name__, server=server, routes_pathname_prefix='/dashboard/')
 # Fonction de scraping PMU.fr
 def get_pmu_odds():
     url = "https://www.pmu.fr/turf/"
-    headers = {"User-Agent": "Mozilla/5.0"}
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept-Language": "fr-FR,fr;q=0.9",
+        "Referer": "https://www.google.com/"
+    }
     
+    time.sleep(3)  # Pause de 3 secondes pour éviter le blocage
+
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, 'lxml')
@@ -35,8 +42,10 @@ def get_pmu_odds():
         if len(horses) == len(odds) and len(horses) > 0:
             return pd.DataFrame({"Horse": horses, "Odds": odds})
         else:
+            print("⚠️ Scraping réussi mais aucune donnée récupérée.")
             return pd.DataFrame()
     else:
+        print(f"❌ Erreur {response.status_code} lors du scraping de PMU.fr")
         return pd.DataFrame()
 
 # Fonction de récupération des données
