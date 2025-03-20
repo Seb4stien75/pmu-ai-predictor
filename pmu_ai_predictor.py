@@ -15,7 +15,7 @@ server = Flask(__name__)
 # Initialisation de l'application Dash
 app = dash.Dash(__name__, server=server, routes_pathname_prefix='/dashboard/')
 
-# Fonction de scraping PMU.fr
+# Fonction pour récupérer les cotes en direct depuis PMU.fr
 def get_pmu_odds():
     url = "https://www.pmu.fr/turf/"
     headers = {
@@ -24,10 +24,11 @@ def get_pmu_odds():
         "Referer": "https://www.google.com/"
     }
     
-    time.sleep(3)  # Pause de 3 secondes pour éviter le blocage
+    try:
+        time.sleep(3)  # Pause de 3 secondes pour éviter le blocage
 
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
         soup = BeautifulSoup(response.text, 'lxml')
 
         horses = []
@@ -44,8 +45,8 @@ def get_pmu_odds():
         else:
             print("⚠️ Scraping réussi mais aucune donnée récupérée.")
             return pd.DataFrame()
-    else:
-        print(f"❌ Erreur {response.status_code} lors du scraping de PMU.fr")
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Erreur lors du scraping de PMU.fr: {e}")
         return pd.DataFrame()
 
 # Fonction de récupération des données
