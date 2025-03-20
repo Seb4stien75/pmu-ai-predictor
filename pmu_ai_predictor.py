@@ -1,6 +1,6 @@
 from flask import Flask
 import dash
-from dash import dcc, html  # ✅ Mise à jour des imports Dash
+from dash import dcc, html
 import pandas as pd
 import numpy as np
 import plotly.express as px
@@ -14,7 +14,7 @@ server = Flask(__name__)
 # Initialisation de l'application Dash
 app = dash.Dash(__name__, server=server, routes_pathname_prefix='/dashboard/')
 
-# ✅ Fonction de scraping PMU.fr
+# Fonction de scraping PMU.fr
 def get_pmu_odds():
     url = "https://www.pmu.fr/turf/"
     headers = {"User-Agent": "Mozilla/5.0"}
@@ -39,7 +39,7 @@ def get_pmu_odds():
     else:
         return pd.DataFrame()
 
-# ✅ Utilisation du scraping ou des données fictives
+# Fonction de récupération des données
 def get_race_data():
     data = get_pmu_odds()
     if data.empty:
@@ -47,7 +47,7 @@ def get_race_data():
         return generate_fake_data()
     return data
 
-# ✅ Génération de données fictives en cas d'échec
+# Génération de données fictives
 def generate_fake_data():
     np.random.seed(42)
     horses = [f"Horse {i}" for i in range(1, 11)]
@@ -58,7 +58,7 @@ def generate_fake_data():
 # Chargement des données initiales
 data = get_race_data()
 
-# Création de l'interface Dash
+# Interface Dash
 app.layout = html.Div([
     html.H1("PMU AI Predictor"),
     dcc.Graph(id='odds-chart',
@@ -66,7 +66,7 @@ app.layout = html.Div([
     dcc.Interval(id='interval-update', interval=60000, n_intervals=0)
 ])
 
-# Callback pour mettre à jour le graphique en temps réel
+# Callback pour mise à jour
 @app.callback(
     Output('odds-chart', 'figure'),
     Input('interval-update', 'n_intervals')
@@ -76,6 +76,8 @@ def update_chart(n):
     fig = px.bar(new_data, x='Horse', y='Odds', title='Updated Odds from PMU.fr')
     return fig
 
-# Lancer l'application Flask
+# Exposer Flask pour Gunicorn
+server = app.server
+
 if __name__ == '__main__':
     app.run_server(debug=True)
