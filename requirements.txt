@@ -1,0 +1,8 @@
+flask
+dash
+pandas
+numpy
+plotly
+requests
+scikit-learn
+gunicorn
